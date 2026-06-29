@@ -8,6 +8,10 @@ on:
 
   workflow_dispatch: # Manual trigger from GitHub UI
 
+permissions:
+  contents: write  # Allows pushing commits
+
+
 jobs:
   check-configs:
     runs-on: ubuntu-latest
