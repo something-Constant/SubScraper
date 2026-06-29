@@ -1,0 +1,50 @@
+name: Run V2Ray Config Checker
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 */6 * * *" # Runs every 6 hours
+  workflow_dispatch: # Manual trigger from GitHub UI
+
+jobs:
+  check-configs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp qrcode pillow aiodns
+
+      - name: Create directories
+        run: |
+          mkdir -p Resources Qrcode
+
+      - name: Run script
+        run: python main.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: config-results
+          path: |
+            test.txt
+            Qrcode/
+          retention-days: 7
+
+      - name: Commit results
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add test.txt Qrcode/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update configs [skip ci]"
+          git push

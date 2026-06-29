@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/roosterkid/openproxylist/refs/heads/main/V2RAY_BASE64.txt
+https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/sub.txt
