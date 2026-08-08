@@ -49,6 +49,6 @@ jobs:
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-          git add ./Configs/tcp_pass/normal.txt ./qrcode
+          git add Configs/tcp_pass/normal.txt qrcode/
           git diff --quiet && git diff --staged --quiet || git commit -m "Update configs [skip ci]"
           git push
