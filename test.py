@@ -19,24 +19,29 @@ project_dir = pathlib.Path(__file__).parent
 SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE  # Skport cert validation for speed
-DEFAULT_TIMEOUT = 6
+DEFAULT_TIMEOUT = 20
 
 
-async def CheckUrl(
-    session: aiohttp.ClientSession, url: str
-) -> Tuple[bool, Optional[float]]:
+max_ping = 400
+
+
+trasport_layer = ["type=ws", "type=tcp", "type=grpc", "type=xhttp"]
+
+security_layer: list = ["security=reality", "security=tls"]
+
+
+async def CheckUrl(session: aiohttp.ClientSession, Url: str):
     try:
         start_time = time.time()
 
         async with session.get(
-            url,
+            Url,
             ssl=SSL_CONTEXT,
             allow_redirects=True,
         ) as response:
             response_time = int((time.time() - start_time) * 1000)
-            text = await response.text()
-            print(response.status)
-            if text:
+
+            if response.status == 200 and response.text():
                 return True, response_time
 
             else:
@@ -50,37 +55,37 @@ async def CheckUrl(
 
 
 async def main():
+    sub_resources = pathlib.Path.joinpath(project_dir, "/Resources/subs.txt")
+    normal_config = pathlib.Path.joinpath(project_dir, "/Configs/tcp_pass/normal.txt")
+    SNI_Spoofing = pathlib.Path.joinpath(
+        project_dir, "/Configs/tcp_pass/SNI_Spoofing.txt"
+    )
+
+    sub_urls: str = ""
+    fetched_sub: str = ""
+    found: list = []
+
+    urls = []
+    OkUrls = []
+    parsed_configs = []
+    configs = []
+
     resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
 
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
+        limit=200,  # Total connections
         force_close=True,  # Close connections after each request
         resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
-    data = [
-        "https://sync.watchwave.link/api/v1/rooms/63368e3dbb/sync",
-        "https://639216722493642090.eslamshahr-sxft.beauty/ilmhlpws",
-        "https://sync.watchwave.link/api/v1/rooms/63368e3dbb/sync",
-        "https://titandarkness.mooo.com/21381/0ko2id8fmq",
-        "https://titandarkness.mooo.com/21381/0ko2id8fmq",
-        "https://www.calmlunch.com/assignment",
-        "https://d1yxsk0zprgivr.cloudfront.net/",
-        "https://ty986gfazs.cainiaohub.xyz/81574b6b-c9d7-44a0-b83d-dad56e8cb530",
-    ]
-
-    # async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-    #     for link in data:
-    #         text = await CheckUrl(session, link)
-    #         print(text)
-
-    d = (
-        "vless://1a08570f-951b-409d-9e51-64c5df62e824@104.17.108.69:443?&security=tls&fp=chrome&sni=639216722493642090.eslamshahr-sxft.beauty&type=ws&headertype=none&host=639216722493642090.eslamshahr-sxft.beauty&path=%2filmhlpws#🇫🇷[openproxylist.com]",
-        (False, 0),
-    )
-    print(d[1][0])
-
-
+    
+    async with aiohttp.ClientSession(
+        connector=connector, timeout=timeout
+    ) as session:
+        text = CheckUrl(session,"https://vod.ensf.top/api/v1/irc")
+    
+    print(text)
 if __name__ == "__main__":
     asyncio.run(main())

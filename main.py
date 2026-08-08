@@ -142,8 +142,8 @@ async def CheckUrl(
 
         async with session.get(
             url,
-            # ssl=SSL_CONTEXT,
-            # allow_redirects=True,
+            ssl=SSL_CONTEXT,
+            allow_redirects=True,
         ) as response:
             response_time = int((time.time() - start_time) * 1000)
             text = await response.text()
@@ -234,14 +234,16 @@ async def ping_multiple_async(hosts_ports, max_concurrent=50):
     resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
-        # force_close=True,  # Close connections after each request
+        force_close=True,  # Close connections after each request
         resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
     async def limited_ping(host):
         async with semaphore:
-            async with aiohttp.ClientSession(connector=connector) as session:
+            async with aiohttp.ClientSession(
+                connector=connector, timeout=timeout
+            ) as session:
                 return await CheckUrl(session, host)
             # return await tcping_async(host)
 
