@@ -1,0 +1,1 @@
+vless://d65cc14c-f53f-4fe2-b262-97856601319c@169.40.42.16:443?security=reality&encryption=none&pbk=e2rlf57li_-mdzge9ss1bwpgp54mqrb5pfxhw2jcvvg&headertype=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=yahoo.com&sid=c39cc7310a#ping:62
