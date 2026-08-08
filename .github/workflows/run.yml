@@ -9,8 +9,7 @@ on:
   workflow_dispatch: # Manual trigger from GitHub UI
 
 permissions:
-  contents: write  # Allows pushing commits
-
+  contents: write # Allows pushing commits
 
 jobs:
   check-configs:
@@ -42,14 +41,14 @@ jobs:
         with:
           name: config-results
           path: |
-            test.txt
-            Qrcode/
+            Configs/tcp_pass/normal.txt
+            qrcode/
           retention-days: 7
 
       - name: Commit results
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-          git add test.txt Qrcode/
+          git add ./Configs/tcp_pass/normal.txt ./qrcode
           git diff --quiet && git diff --staged --quiet || git commit -m "Update configs [skip ci]"
           git push
