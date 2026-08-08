@@ -142,8 +142,8 @@ async def CheckUrl(
 
         async with session.get(
             url,
-            ssl=SSL_CONTEXT,
-            allow_redirects=True,
+            # ssl=SSL_CONTEXT,
+            # allow_redirects=True,
         ) as response:
             response_time = int((time.time() - start_time) * 1000)
             text = await response.text()
@@ -201,16 +201,14 @@ async def fetch_sub(url: str) -> str:
     return False
 
 
-async def tcping_async(
-    host: str, port: int, timeout: float = 1
-) -> Tuple[bool, Optional[float]]:
+async def tcping_async(host: str, timeout: float = 1) -> Tuple[bool, Optional[float]]:
     """Async TCP ping using asyncio"""
     start_time = time.time()
 
     try:
         async with asyncio.timeout(timeout):
             # Modern asyncio.open_connection (no loop parameter)
-            reader, writer = await asyncio.open_connection(host, port, ssl=False)
+            reader, writer = await asyncio.open_connection(host, 443, ssl=False)
 
             writer.close()
             await writer.wait_closed()
@@ -236,17 +234,16 @@ async def ping_multiple_async(hosts_ports, max_concurrent=50):
     resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
-        force_close=True,  # Close connections after each request
+        # force_close=True,  # Close connections after each request
         resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
     async def limited_ping(host):
         async with semaphore:
-            async with aiohttp.ClientSession(
-                connector=connector, timeout=timeout
-            ) as session:
+            async with aiohttp.ClientSession(connector=connector) as session:
                 return await CheckUrl(session, host)
+            # return await tcping_async(host)
 
     tasks = [limited_ping(host) for host in hosts_ports]
     return await asyncio.gather(*tasks)
@@ -498,9 +495,8 @@ async def main():
     found = dict(zip(configs, results))
 
     config = {}
-    
+
     print(results)
-    
 
     for url in found.items():
         if url[1][0]:

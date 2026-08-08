@@ -9,4 +9,7 @@ wheels/
 # Virtual environments
 .venv
 .vscode 
-.test
+test/
+.test/
+./test/
+test/*
