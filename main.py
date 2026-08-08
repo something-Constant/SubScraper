@@ -524,7 +524,7 @@ async def main():
 
     found = dict(sorted(config.items(), key=lambda item: item[1][1]))
 
-    found = dict(list(found.items())[:100])
+    found = dict(list(found.items())[:200])
 
     print("working configs:", len(found))
 
