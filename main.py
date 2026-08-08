@@ -17,7 +17,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE  # Skport cert validation for speed
-DEFAULT_TIMEOUT = 10
+DEFAULT_TIMEOUT = 50
 
 
 max_ping = 5000
