@@ -17,7 +17,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE  # Skport cert validation for speed
-DEFAULT_TIMEOUT = 50
+DEFAULT_TIMEOUT = 2
 
 
 max_ping = 5000
@@ -134,40 +134,6 @@ def text_qrcode(name, data, location=None):
     img.save(location)
 
 
-async def CheckUrl(
-    session: aiohttp.ClientSession, url: str
-) -> Tuple[bool, Optional[float]]:
-    try:
-        start_time = time.time()
-
-        async with session.get(
-            url,
-            ssl=SSL_CONTEXT,
-            allow_redirects=True,
-        ) as response:
-            response_time = int((time.time() - start_time) * 1000)
-            text = await response.text()
-            if text:
-                return True, response_time
-
-            else:
-                return False, None
-
-    except Exception:
-        # Silently ignore connection errors, timeouts, etc.
-        return False, None
-
-    except asyncio.TimeoutError:
-        return False, None
-
-    except aiohttp.ClientError as e:
-        return False, None
-
-    except asyncio.CancelledError:
-        # ✅ Handle cancellation gracefully
-        return False, None
-
-
 async def fetch_sub(url: str) -> str:
     resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
 
@@ -204,7 +170,7 @@ async def fetch_sub(url: str) -> str:
 async def tcping_async(host: str, timeout: float = 1) -> Tuple[bool, Optional[float]]:
     """Async TCP ping using asyncio"""
     start_time = time.time()
-
+    port = 0
     try:
         async with asyncio.timeout(timeout):
             # Modern asyncio.open_connection (no loop parameter)
@@ -228,27 +194,53 @@ async def tcping_async(host: str, timeout: float = 1) -> Tuple[bool, Optional[fl
         return False, None
 
 
+async def CheckUrl(
+    session: aiohttp.ClientSession, url: str
+) -> Tuple[bool, Optional[float]]:
+    try:
+        start_time = time.time()
+
+        async with session.get(
+            url,
+            ssl=SSL_CONTEXT,
+            allow_redirects=True,
+        ) as response:
+            response_time = int((time.time() - start_time) * 1000)
+            text = await response.text()
+            if text:
+                return True, response_time
+
+            else:
+                return False, None
+
+    except Exception:
+        # Silently ignore connection errors, timeouts, etc.
+        return False, None
+
+
 async def ping_multiple_async(hosts_ports, max_concurrent=50):
     semaphore = asyncio.Semaphore(max_concurrent)
 
     resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
+        limit=10,  # Total connections
         force_close=True,  # Close connections after each request
         resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
+    async with aiohttp.ClientSession(
+        connector=connector,
+        timeout=timeout,
+    ) as session:
 
-    async def limited_ping(host):
-        async with semaphore:
-            async with aiohttp.ClientSession(
-                connector=connector, timeout=timeout
-            ) as session:
+        async def limited_ping(host):
+            async with semaphore:
                 return await CheckUrl(session, host)
             # return await tcping_async(host)
 
-    tasks = [limited_ping(host) for host in hosts_ports]
-    return await asyncio.gather(*tasks)
+        tasks = [limited_ping(host) for host in hosts_ports]
+        return await asyncio.gather(*tasks)
 
 
 def parse_data(data: list):
@@ -493,6 +485,29 @@ async def main():
         hosts.append(url)
 
     results = await ping_multiple_async(hosts)
+
+    # resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
+    # connector = aiohttp.TCPConnector(
+    #     ssl=SSL_CONTEXT,  # Reuse SSL context
+    #     limit=10,  # Total connections
+    #     force_close=True,  # Close connections after each request
+    #     resolver=resolver,
+    # )
+    # timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
+    # semaphore = asyncio.Semaphore(20)
+    # results = []
+    # i = 0
+    # async with semaphore:
+    #     async with aiohttp.ClientSession(
+    #         connector=connector, timeout=timeout
+    #     ) as session:
+    #         for link in hosts:
+    #             print(link)
+    #             text = await CheckUrl(session, link)
+    #             print(text)
+    #             results.append(text)
+
+    #             # results = await CheckUrl(session, host)
 
     found = dict(zip(configs, results))
 

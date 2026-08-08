@@ -70,16 +70,12 @@ async def main():
         "https://ty986gfazs.cainiaohub.xyz/81574b6b-c9d7-44a0-b83d-dad56e8cb530",
     ]
 
-    # async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-    #     for link in data:
-    #         text = await CheckUrl(session, link)
-    #         print(text)
+    async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+        for link in data:
+            text = await CheckUrl(session, link)
+            print(text)
 
-    d = (
-        "vless://1a08570f-951b-409d-9e51-64c5df62e824@104.17.108.69:443?&security=tls&fp=chrome&sni=639216722493642090.eslamshahr-sxft.beauty&type=ws&headertype=none&host=639216722493642090.eslamshahr-sxft.beauty&path=%2filmhlpws#🇫🇷[openproxylist.com]",
-        (False, 0),
-    )
-    print(d[1][0])
+
 
 
 if __name__ == "__main__":
