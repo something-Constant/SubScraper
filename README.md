@@ -12,8 +12,7 @@ A lightweight, asynchronous Python engine designed to scrape V2Ray subscription 
 | Normal TCP Pass | SNI-Spoof Pass |
 | :---: | :---: |
 
-<img src=qrcode/tcp_pass_normal.png width="300" alt="TCP Pass Normal QR Code">
-<img src=qrcode/tcp_pass_spoof.png width="300" alt="TCP Pass Sni Spoof QR Code">
+<img src=qrcode/tcp_pass_normal.png width="300" alt="TCP Pass Normal QR Code"> <img src=qrcode/tcp_pass_spoof.png width="300" alt="TCP Pass Sni Spoof QR Code">
 
 ---
 
