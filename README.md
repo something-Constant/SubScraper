@@ -1,96 +1,32 @@
-# SubScraper / up-load
+# SubScraper
 
-A lightweight Python tool for scraping subscription links, extracting valid VLESS/Trojan configs, testing connectivity, and exporting clean working results.
+[![Python Version](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## QR Code
+A lightweight, asynchronous Python engine designed to scrape V2Ray subscription endpoints, extract VLESS/Trojan nodes, validate latency, and export sorted, active configurations with corresponding QR codes.
 
-![TCP Pass Normal QR Code](qrcode/tcp_pass_normal.png)
-![TCP Pass Sni Spoof QR Code](qrcode/tcp_pass_spoof.png)
+---
 
+## 📷 QR Code Quick Scans
 
-## Last Updated
+| Normal TCP Pass | SNI-Spoof Pass |
+| :---: | :---: |
 
-- 2026-08-09
+<img src=qrcode/tcp_pass_normal.png width="300" alt="TCP Pass Normal QR Code">
+<img src=qrcode/tcp_pass_spoof.png width="300" alt="TCP Pass Sni Spoof QR Code">
 
-## Overview
+---
 
-This project reads subscription sources from the `Resources/subs.txt` file, fetches the remote content, parses supported configurations, filters working entries by connectivity check, and writes the final valid list to:
+## 📅 Last Updated
 
-- `Configs/tcp_pass/normal.txt`
+**2026-08-09**
 
-It can also generate a QR code image in the `qrcode/` folder for sharing or quick access.
+---
 
-## Features
+## 🚀 Key Features
 
-- Async fetching of subscription URLs
-- Extraction of VLESS/Trojan links
-- Base64 decode support
-- URL normalization and parsing
-- TCP/HTTP validation check for working nodes
-- Output sorting by response time
-- QR code generation for the final config source
-
-## Project Structure
-
-```text
-.
-├── main.py
-├── pyproject.toml
-├── requirements.txt
-├── README.md
-├── Resources/
-│   └── subs.txt
-├── Configs/
-│   └── tcp_pass/
-│       ├── normal.txt
-│       └── SNI-Spoofing.txt
-├── qrcode/
-│   └── tcp-pass.png
-└── test/
-```
-
-## Requirements
-
-- Python 3.14+
-- Dependencies listed in `requirements.txt`
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Or use the project virtual environment:
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-## Usage
-
-Run the scraper:
-
-```bash
-python main.py
-```
-
-The script will:
-
-1. Load subscription URLs from `Resources/subs.txt`
-2. Download and parse each subscription
-3. Filter valid links
-4. Test each host
-5. Save the best working configs to `Configs/tcp_pass/normal.txt`
-6. Generate the QR code image in `qrcode/tcp-pass.png`
-
-## Notes
-
-- The script is designed for testing and generating usable proxy config lists.
-- Some endpoints may be blocked or rate-limited depending on network conditions.
-- The generated config output should be reviewed before use in production environments.
-
-## License
-
-This project is provided for educational and testing use.
+* **Async Pipeline:** Fetches and evaluates multiple subscription feeds simultaneously using `asyncio` and `aiohttp`.
+* **Multi-Protocol Extraction:** Parses and normalizes `vless://` and `trojan://` URIs, including Base64-encoded payload handling.
+* **Latency Benchmarking:** Performs direct TCP socket and HTTP handshake validation to discard dead nodes and rank active ones by speed.
+* **SNI Spoofing Segregation:** Filters and classifies configurations based on standard vs. SNI-spoofed routing paths.
+* **Automated QR Generation:** Generates high-contrast QR codes directly into the `qrcode/` directory for instant mobile scanning.
