@@ -31,7 +31,7 @@ jobs:
 
       - name: Create directories
         run: |
-          mkdir -p Resources Qrcode
+          mkdir -p Resources qrcode
 
       - name: Run script
         run: python main.py
