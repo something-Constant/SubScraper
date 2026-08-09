@@ -1,7 +1,7 @@
 import re
 import asyncio
 import aiohttp
-from aiohttp.resolver import ThreadedResolver
+from aiohttp.resolver import AsyncResolver
 import ssl
 import pathlib
 import os
@@ -18,18 +18,6 @@ SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE  # Skport cert validation for speed
 DEFAULT_TIMEOUT = 5
-
-
-def build_connector(limit: int = 20, force_close: bool = True):
-    """Avoid aiodns/AsyncResolver on CI runners, which can time out or fail
-    for many invalid domains while the rest of the network is still healthy.
-    """
-    return aiohttp.TCPConnector(
-        ssl=SSL_CONTEXT,
-        limit=limit,
-        force_close=force_close,
-        resolver=ThreadedResolver(),
-    )
 
 
 max_ping = 5000
@@ -89,12 +77,17 @@ def remove_allow_insecure(url: str) -> str:
 
     return url
 
-    return url
-
 
 # Meybe in the next updait
 async def get_ipinfo(ip):
-    connector = build_connector(limit=200, force_close=True)
+    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
+
+    connector = aiohttp.TCPConnector(
+        ssl=SSL_CONTEXT,  # Reuse SSL context
+        limit=200,  # Total connections
+        force_close=True,  # Close connections after each request
+        resolver=resolver,
+    )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
     try:
@@ -141,7 +134,14 @@ def text_qrcode(name, data, location=None):
 
 
 async def fetch_sub(url: str) -> str:
-    connector = build_connector(limit=20, force_close=True)
+    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
+
+    connector = aiohttp.TCPConnector(
+        ssl=SSL_CONTEXT,  # Reuse SSL context
+        limit=20,  # Total connections
+        force_close=True,  # Close connections after each request
+        resolver=resolver,
+    )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
     try:
@@ -397,10 +397,16 @@ def is_resolvable_host(url: str) -> bool:
         return False
 
 
-async def ping_multiple_async(hosts_ports, max_concurrent=50):
+async def ping_multiple_async(hosts_ports, max_concurrent=100):
     semaphore = asyncio.Semaphore(max_concurrent)
 
-    connector = build_connector(limit=10, force_close=True)
+    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
+    connector = aiohttp.TCPConnector(
+        ssl=SSL_CONTEXT,  # Reuse SSL context
+        limit=100,  # Total connections
+        force_close=True,  # Close connections after each request
+        resolver=resolver,
+    )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
     async with aiohttp.ClientSession(
         connector=connector,
@@ -412,13 +418,7 @@ async def ping_multiple_async(hosts_ports, max_concurrent=50):
                 return await CheckUrl(session, host)
             # return await tcping_async(host)
 
-        # Skip hosts that fail DNS resolution before we even start the HTTP checks.
-        # This avoids the noisy "shielded future" resolver errors for dead/invalid domains
-        # on GitHub-hosted runners.
-        filtered_hosts = [
-            host for host in hosts_ports if is_resolvable_host(host)
-        ]
-        tasks = [limited_ping(host) for host in filtered_hosts]
+        tasks = [limited_ping(host) for host in hosts_ports]
         return await asyncio.gather(*tasks)
 
 
