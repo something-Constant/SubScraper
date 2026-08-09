@@ -412,6 +412,16 @@ async def ping_multiple_async(hosts_ports, max_concurrent=50):
         return await asyncio.gather(*tasks)
 
 
+def convert_to_sppof(data: str):
+    try:
+        pattern = r"(@)(?:\[[0-9a-fA-F:]+\]|[^:/#?]+)(?::\d+)?"
+        replacement = r"\g<1>127.0.0.1:40443"
+        return re.sub(pattern, replacement, data)
+
+    except Exception as e:
+        print(e)
+
+
 async def main():
     project_dir = pathlib.Path(__file__).parent
     subresources_path = pathlib.Path.joinpath(project_dir, "Resources", "subs.txt")
@@ -422,7 +432,8 @@ async def main():
         project_dir, "Configs", "tcp_pass", "SNI_Spoofing.txt"
     )
 
-    tcp_pass_github: str = "https://github.com/something-Constant/SubScraper/raw/refs/heads/main/Configs/tcp_pass/normal.txt"
+    tcp_pass_normal_github: str = "https://github.com/something-Constant/SubScraper/raw/refs/heads/main/Configs/tcp_pass/normal.txt"
+    tcp_pass_spoof_github: str = "https://github.com/something-Constant/SubScraper/raw/refs/heads/main/Configs/tcp_pass/SNI_Spoofing.txt"
 
     sub_urls: str = ""
     fetched_sub: str = ""
@@ -483,7 +494,12 @@ async def main():
         for link in sorted_good:
             file.write(link + "\n")
 
-    text_qrcode("tcp-pass.png", tcp_pass_github)
+    with open(SNISpoofing_path, "w", encoding="utf-8") as file:
+        for link in sorted_good:
+            file.write(convert_to_sppof(link) + "\n")
+
+    text_qrcode("tcp_pass_normal.png", tcp_pass_normal_github)
+    text_qrcode("tcp_pass_spoof.png", tcp_pass_spoof_github)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,9 @@
+vless://ab7d5ea9-6eca-47c3-b14b-67378fc2d7c2@127.0.0.1:40443?type=tcp&security=reality&encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=uo3eobgu3xurhigee0gfcn5zoz8yxncwww6zayzd3sa&sid=4e9b0c2d1a3f5768&sni=as.tunnelx.space#ping:374
+trojan://humanity@127.0.0.1:40443?path=/assignment&security=tls&host=www.calmlunch.com&type=ws&sni=www.calmlunch.com&note=@127.0.0.1:40443#ping:551
+vless://e1a5c7fd-d1c7-49a3-b772-9e2935d420db@127.0.0.1:40443?&security=tls&fp=chrome&sni=ssl.fastly.com&type=ws&headertype=none&host=svnteamchannel.global.ssl.fastly.net&path=%2f#ping:671
+vless://89a4a0a0-81d0-deff-02af-61e41becb133@127.0.0.1:40443?&security=tls&fp=randomized&alpn=http%2f1.1&sni=x4g-production-61fb.up.railway.app&type=ws&headertype=none&host=x4g-production-61fb.up.railway.app&path=%2fws%2f89a4a0a0-81d0-deff-02af-61e41becb133#ping:674
+vless://89755337-8050-401c-86d1-c8c34fb88d89@127.0.0.1:40443?security=reality&encryption=none&pbk=wdwqnp1lnafz3l_r9hrk5vpvgv9m7ubb5jzuypcwdae&headertype=none&fp=chrome&spx=/&type=tcp&sni=www.icloud.com&sid=e96bc8c85c3836#ping:1148
+vless://d9aa9ea3-9388-483f-a58d-a754f33ec505@127.0.0.1:40443?mode=gun&security=reality&encryption=none&pbk=gs0dfvzx-bvkbdl2brvxsre6t2wyxxkfgp3x-mqc7by&fp=chrome&type=grpc&servicename=api.v1.data&sni=play.google.com&sid=524efc1f88592266#ping:1376
+vless://7ce54bb3-d612-4aa7-be08-089d3c461d53@127.0.0.1:40443?&security=tls&fp=chrome&sni=d1yxsk0zprgivr.cloudfront.net&type=ws&headertype=none&host=d1yxsk0zprgivr.cloudfront.net&path=%2f#ping:1886
+vless://d65cc14c-f53f-4fe2-b262-97856601319c@127.0.0.1:40443?security=reality&encryption=none&pbk=e2rlf57li_-mdzge9ss1bwpgp54mqrb5pfxhw2jcvvg&headertype=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=yahoo.com&sid=c39cc7310a#ping:2308
+vless://xpnteam-21@127.0.0.1:40443?&security=tls&fp=chrome&alpn=http%2f1.1&sni=ssl.fastly.com&type=ws&headertype=none&host=appxdn.global.ssl.fastly.net&path=%2f#ping:4007

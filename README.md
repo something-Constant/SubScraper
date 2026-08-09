@@ -4,7 +4,9 @@ A lightweight Python tool for scraping subscription links, extracting valid VLES
 
 ## QR Code
 
-![TCP Pass QR Code](qrcode/tcp-pass.png)
+![TCP Pass Normal QR Code](qrcode/tcp_pass_normal.png)
+![TCP Pass Sni Spoof QR Code](qrcode/tcp_pass_spoof.png)
+
 
 ## Last Updated
 
