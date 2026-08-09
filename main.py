@@ -1,6 +1,7 @@
 import re
 import asyncio
 import aiohttp
+from aiohttp.resolver import ThreadedResolver
 import ssl
 import pathlib
 import os
@@ -20,16 +21,14 @@ DEFAULT_TIMEOUT = 5
 
 
 def build_connector(limit: int = 20, force_close: bool = True):
-    """Use the system DNS resolver by default to avoid CI DNS outages.
-
-    Hardcoded public nameservers like 8.8.8.8/1.1.1.1 can fail in GitHub Actions
-    with "DNS server returned general failure" even when the rest of the network
-    is working. Let aiohttp use the platform resolver instead.
+    """Avoid aiodns/AsyncResolver on CI runners, which can time out or fail
+    for many invalid domains while the rest of the network is still healthy.
     """
     return aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,
         limit=limit,
         force_close=force_close,
+        resolver=ThreadedResolver(),
     )
 
 
@@ -386,6 +385,18 @@ async def CheckUrl(
         return False, None
 
 
+def is_resolvable_host(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname or url
+        if not hostname:
+            return False
+        socket.getaddrinfo(hostname, None, type=socket.SOCK_STREAM)
+        return True
+    except (socket.gaierror, OSError, ValueError):
+        return False
+
+
 async def ping_multiple_async(hosts_ports, max_concurrent=50):
     semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -401,7 +412,13 @@ async def ping_multiple_async(hosts_ports, max_concurrent=50):
                 return await CheckUrl(session, host)
             # return await tcping_async(host)
 
-        tasks = [limited_ping(host) for host in hosts_ports]
+        # Skip hosts that fail DNS resolution before we even start the HTTP checks.
+        # This avoids the noisy "shielded future" resolver errors for dead/invalid domains
+        # on GitHub-hosted runners.
+        filtered_hosts = [
+            host for host in hosts_ports if is_resolvable_host(host)
+        ]
+        tasks = [limited_ping(host) for host in filtered_hosts]
         return await asyncio.gather(*tasks)
 
 
@@ -467,6 +484,9 @@ async def main():
     # 4. Test them
     hosts = list(parsed_configs.values())
     results = await ping_multiple_async(hosts)
+    if not results:
+        print("No resolvable hosts to test.")
+        return
 
     good = {}
     temp = {}
