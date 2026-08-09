@@ -11,6 +11,8 @@ import time
 import socket
 from typing import List, Tuple, Optional
 from urllib.parse import parse_qs, unquote, urlparse
+import aiodns
+
 
 project_dir = pathlib.Path(__file__).parent
 
@@ -49,6 +51,64 @@ async def CheckUrl(
     return False
 
 
+
+import asyncio
+import socket
+import aiodns
+
+async def resolve_host(hostname):
+    resolver = aiodns.DNSResolver(nameservers=["8.8.8.8", "1.1.1.1"])
+    try:
+        result = await resolver.getaddrinfo(hostname, socket.AF_INET)
+        # Access the 'host' attribute directly from each AddrInfoNode
+        ips = [node.host for node in result.nodes]
+        return ips
+    except aiodns.error.DNSError as e:
+        print(f"DNS Resolution error: {e}")
+        return []
+    except Exception as e:
+        print(f"Failed to resolve: {e}")
+        return []
+        
+async def get_ipinfo(ip):
+    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
+
+    connector = aiohttp.TCPConnector(
+        ssl=SSL_CONTEXT,  # Reuse SSL context
+        limit=200,  # Total connections
+        force_close=True,  # Close connections after each request
+        resolver=resolver,
+    )
+    timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
+
+    try:
+        async with aiohttp.ClientSession(
+            connector=connector, timeout=timeout
+        ) as session:
+            async with session.get(
+                f"https://api.ip.sb/geoip/{ip}",
+                ssl=SSL_CONTEXT,
+                allow_redirects=True,
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+
+                    # Try to get country name or code
+                    country = data.get("country") or data.get("country_code")
+                    isp = data.get("isp")
+
+                    if country:
+                        # print(f"Country: {country}, isp: {isp}")
+                        return country, isp
+
+                    return False
+
+    except Exception:
+        # Silently ignore connection errors, timeouts, etc.
+        # pass
+        return False
+
+
 async def main():
     resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
 
@@ -70,12 +130,17 @@ async def main():
         "https://ty986gfazs.cainiaohub.xyz/81574b6b-c9d7-44a0-b83d-dad56e8cb530",
     ]
 
-    async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-        for link in data:
-            text = await CheckUrl(session, link)
-            print(text)
+    # async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+    #     for link in data:
+    #         text = await CheckUrl(session, link)
+    #         print(text)
 
+    data = await resolve_host("sync.watchwave.link")
+    print(data)
+    
+    data = await get_ipinfo("sync.watchwave.link")
 
+    print(data)
 
 
 if __name__ == "__main__":
