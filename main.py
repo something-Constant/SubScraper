@@ -1,7 +1,6 @@
 import re
 import asyncio
 import aiohttp
-from aiohttp.resolver import AsyncResolver
 import ssl
 import pathlib
 import os
@@ -18,6 +17,20 @@ SSL_CONTEXT = ssl.create_default_context()
 SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE  # Skport cert validation for speed
 DEFAULT_TIMEOUT = 5
+
+
+def build_connector(limit: int = 20, force_close: bool = True):
+    """Use the system DNS resolver by default to avoid CI DNS outages.
+
+    Hardcoded public nameservers like 8.8.8.8/1.1.1.1 can fail in GitHub Actions
+    with "DNS server returned general failure" even when the rest of the network
+    is working. Let aiohttp use the platform resolver instead.
+    """
+    return aiohttp.TCPConnector(
+        ssl=SSL_CONTEXT,
+        limit=limit,
+        force_close=force_close,
+    )
 
 
 max_ping = 5000
@@ -82,14 +95,7 @@ def remove_allow_insecure(url: str) -> str:
 
 # Meybe in the next updait
 async def get_ipinfo(ip):
-    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
-
-    connector = aiohttp.TCPConnector(
-        ssl=SSL_CONTEXT,  # Reuse SSL context
-        limit=200,  # Total connections
-        force_close=True,  # Close connections after each request
-        resolver=resolver,
-    )
+    connector = build_connector(limit=200, force_close=True)
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
     try:
@@ -136,14 +142,7 @@ def text_qrcode(name, data, location=None):
 
 
 async def fetch_sub(url: str) -> str:
-    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
-
-    connector = aiohttp.TCPConnector(
-        ssl=SSL_CONTEXT,  # Reuse SSL context
-        limit=20,  # Total connections
-        force_close=True,  # Close connections after each request
-        resolver=resolver,
-    )
+    connector = build_connector(limit=20, force_close=True)
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
     try:
@@ -390,13 +389,7 @@ async def CheckUrl(
 async def ping_multiple_async(hosts_ports, max_concurrent=50):
     semaphore = asyncio.Semaphore(max_concurrent)
 
-    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
-    connector = aiohttp.TCPConnector(
-        ssl=SSL_CONTEXT,  # Reuse SSL context
-        limit=10,  # Total connections
-        force_close=True,  # Close connections after each request
-        resolver=resolver,
-    )
+    connector = build_connector(limit=10, force_close=True)
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
     async with aiohttp.ClientSession(
         connector=connector,
