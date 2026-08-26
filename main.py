@@ -308,45 +308,45 @@ def parse_data(data: list):
                 #     if host_path:
                 #         parsed[url] = host_path
 
-                elif "type=xhttp" in url:
-                    parsed_url = urlparse(url)
+                # elif "type=xhttp" in url:
+                #     parsed_url = urlparse(url)
 
-                    # Fix query string - replace HTML entities
-                    query = parsed_url.query
-                    query = query.replace("&amp;", "&")
-                    query = query.replace("&lt;", "<")
-                    query = query.replace("&gt;", ">")
-                    query = query.replace("&quot;", '"')
+                #     # Fix query string - replace HTML entities
+                #     query = parsed_url.query
+                #     query = query.replace("&amp;", "&")
+                #     query = query.replace("&lt;", "<")
+                #     query = query.replace("&gt;", ">")
+                #     query = query.replace("&quot;", '"')
 
-                    # Parse query parameters into a dictionary
-                    params = parse_qs(query, keep_blank_values=True)
+                #     # Parse query parameters into a dictionary
+                #     params = parse_qs(query, keep_blank_values=True)
 
-                    ip_port = (
-                        parsed_url.netloc.split("@")[-1]
-                        if "@" in parsed_url.netloc
-                        else parsed_url.netloc
-                    )
-                    if ":" in ip_port:
-                        ip, port = ip_port.rsplit(":", 1)
-                    else:
-                        continue
+                #     ip_port = (
+                #         parsed_url.netloc.split("@")[-1]
+                #         if "@" in parsed_url.netloc
+                #         else parsed_url.netloc
+                #     )
+                #     if ":" in ip_port:
+                #         ip, port = ip_port.rsplit(":", 1)
+                #     else:
+                #         continue
 
-                    # Extract host and path
-                    if "host" in params and params["host"]:
-                        host = params.get("host", [None])[0]
-                    else:
-                        host = ip
+                #     # Extract host and path
+                #     if "host" in params and params["host"]:
+                #         host = params.get("host", [None])[0]
+                #     else:
+                #         host = ip
 
-                    if "path" in params and params["path"]:
-                        raw_path = params.get("path", [None])[0]
-                        path = unquote(raw_path) if raw_path is not None else None
-                    else:
-                        path = ""
+                #     if "path" in params and params["path"]:
+                #         raw_path = params.get("path", [None])[0]
+                #         path = unquote(raw_path) if raw_path is not None else None
+                #     else:
+                #         path = ""
 
-                    host_path = "https://" + host + path
+                #     host_path = "https://" + host + path
 
-                    if host_path:
-                        parsed[url] = host_path
+                #     if host_path:
+                #         parsed[url] = host_path
 
         except Exception as e:
             print(e)
