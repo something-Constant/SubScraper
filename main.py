@@ -251,61 +251,61 @@ def parse_data(data: list):
                     if host_path:
                         parsed[url] = host_path
 
-                elif "type=tcp" in url:
-                    parsed_url = urlparse(url)
+                # elif "type=tcp" in url:
+                #     parsed_url = urlparse(url)
 
-                    # 1. Extract IP:Port from netloc (104.17.19.109:2083)
-                    ip_port = (
-                        parsed_url.netloc.split("@")[-1]
-                        if "@" in parsed_url.netloc
-                        else parsed_url.netloc
-                    )
-                    if ":" in ip_port:
-                        ip, port = ip_port.rsplit(":", 1)
-                    else:
-                        continue
+                #     # 1. Extract IP:Port from netloc (104.17.19.109:2083)
+                #     ip_port = (
+                #         parsed_url.netloc.split("@")[-1]
+                #         if "@" in parsed_url.netloc
+                #         else parsed_url.netloc
+                #     )
+                #     if ":" in ip_port:
+                #         ip, port = ip_port.rsplit(":", 1)
+                #     else:
+                #         continue
 
-                    host_path = "https://" + ip
+                #     host_path = "https://" + ip
 
-                    if ip_port:
-                        parsed[url] = host_path
+                #     if ip_port:
+                #         parsed[url] = host_path
 
-                elif "type=grpc" in url:
-                    parsed_url = urlparse(url)
+                # elif "type=grpc" in url:
+                #     parsed_url = urlparse(url)
 
-                    # Fix query string - replace HTML entities
-                    query = parsed_url.query
-                    query = query.replace("&amp;", "&")
-                    query = query.replace("&lt;", "<")
-                    query = query.replace("&gt;", ">")
-                    query = query.replace("&quot;", '"')
+                #     # Fix query string - replace HTML entities
+                #     query = parsed_url.query
+                #     query = query.replace("&amp;", "&")
+                #     query = query.replace("&lt;", "<")
+                #     query = query.replace("&gt;", ">")
+                #     query = query.replace("&quot;", '"')
 
-                    # Parse query parameters into a dictionary
-                    params = parse_qs(query, keep_blank_values=True)
+                #     # Parse query parameters into a dictionary
+                #     params = parse_qs(query, keep_blank_values=True)
 
-                    # print(parsed_url)
+                #     # print(parsed_url)
 
-                    ip_port = (
-                        parsed_url.netloc.split("@")[-1]
-                        if "@" in parsed_url.netloc
-                        else parsed_url.netloc
-                    )
-                    if ":" in ip_port:
-                        ip, port = ip_port.rsplit(":", 1)
-                    else:
-                        continue
+                #     ip_port = (
+                #         parsed_url.netloc.split("@")[-1]
+                #         if "@" in parsed_url.netloc
+                #         else parsed_url.netloc
+                #     )
+                #     if ":" in ip_port:
+                #         ip, port = ip_port.rsplit(":", 1)
+                #     else:
+                #         continue
 
-                    # Extract host and path
-                    if "path" in params and params["path"]:
-                        raw_path = params.get("path", [None])[0]
-                        path = unquote(raw_path) if raw_path is not None else None
-                    else:
-                        path = ""
+                #     # Extract host and path
+                #     if "path" in params and params["path"]:
+                #         raw_path = params.get("path", [None])[0]
+                #         path = unquote(raw_path) if raw_path is not None else None
+                #     else:
+                #         path = ""
 
-                    host_path = "https://" + ip + path
+                #     host_path = "https://" + ip + path
 
-                    if host_path:
-                        parsed[url] = host_path
+                #     if host_path:
+                #         parsed[url] = host_path
 
                 elif "type=xhttp" in url:
                     parsed_url = urlparse(url)
