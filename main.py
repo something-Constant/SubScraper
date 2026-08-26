@@ -207,8 +207,9 @@ def parse_data(data: list):
 
     for url in data:
         try:
-            if any(security in url for security in security_layer):
-                url = url.lower()
+            url = url.lower()
+
+            if any(security.lower() in url for security in security_layer):
                 url = remove_allow_insecure(url)
 
                 if "type=ws" in url:
