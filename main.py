@@ -1,7 +1,6 @@
 import re
 import asyncio
 import aiohttp
-from aiohttp.resolver import AsyncResolver
 import ssl
 import pathlib
 import os
@@ -20,7 +19,7 @@ SSL_CONTEXT.verify_mode = ssl.CERT_NONE  # Skport cert validation for speed
 DEFAULT_TIMEOUT = 5
 
 
-max_ping = 5000
+max_ping = 1000
 
 
 trasport_layer = ["type=ws", "type=tcp", "type=grpc", "type=xhttp"]
@@ -80,13 +79,10 @@ def remove_allow_insecure(url: str) -> str:
 
 # Meybe in the next updait
 async def get_ipinfo(ip):
-    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
-
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
         limit=200,  # Total connections
         force_close=True,  # Close connections after each request
-        resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
@@ -134,13 +130,10 @@ def text_qrcode(name, data, location=None):
 
 
 async def fetch_sub(url: str) -> str:
-    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
-
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
         limit=20,  # Total connections
         force_close=True,  # Close connections after each request
-        resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
 
@@ -211,142 +204,55 @@ def parse_data(data: list):
 
             if any(security.lower() in url for security in security_layer):
                 url = remove_allow_insecure(url)
+                parsed_url = urlparse(url)
+
+                # Fix query string - replace HTML entities
+                query = parsed_url.query
+                query = query.replace("&amp;", "&")
+                query = query.replace("&lt;", "<")
+                query = query.replace("&gt;", ">")
+                query = query.replace("&quot;", '"')
+
+                # Parse query parameters into a dictionary
+                params = parse_qs(query, keep_blank_values=True)
+
+                # Extract IP and Port from netloc
+                ip_port = (
+                    parsed_url.netloc.split("@")[-1]
+                    if "@" in parsed_url.netloc
+                    else parsed_url.netloc
+                )
+                if ":" in ip_port:
+                    ip, port = ip_port.rsplit(":", 1)
+                else:
+                    continue
+
+                # Extract and unquote path (used by ws, grpc, xhttp)
+                if "path" in params and params["path"]:
+                    raw_path = params.get("path", [None])[0]
+                    path = unquote(raw_path) if raw_path is not None else ""
+                else:
+                    path = ""
 
                 if "type=ws" in url:
-                    parsed_url = urlparse(url)
-
-                    # Fix query string - replace HTML entities
-                    query = parsed_url.query
-                    query = query.replace("&amp;", "&")
-                    query = query.replace("&lt;", "<")
-                    query = query.replace("&gt;", ">")
-                    query = query.replace("&quot;", '"')
-
-                    # Parse query parameters into a dictionary
-                    params = parse_qs(query, keep_blank_values=True)
-
-                    ip_port = (
-                        parsed_url.netloc.split("@")[-1]
-                        if "@" in parsed_url.netloc
-                        else parsed_url.netloc
-                    )
-                    if ":" in ip_port:
-                        ip, port = ip_port.rsplit(":", 1)
-                    else:
-                        continue
-
-                    # Extract host and path
-                    if "host" in params and params["host"]:
-                        host = params.get("host", [None])[0]
-                    else:
-                        host = ip
-
-                    if "path" in params and params["path"]:
-                        raw_path = params.get("path", [None])[0]
-                        path = unquote(raw_path) if raw_path is not None else None
-                    else:
-                        path = ""
-
-                    host_path = "https://" + host + path
-
+                    host_path = "https://" + ip + path
                     if host_path:
                         parsed[url] = host_path
 
-                # elif "type=tcp" in url:
-                #     parsed_url = urlparse(url)
+                elif "type=tcp" in url:
+                    host_path = "https://" + ip
+                    if ip_port:
+                        parsed[url] = host_path
 
-                #     # 1. Extract IP:Port from netloc (104.17.19.109:2083)
-                #     ip_port = (
-                #         parsed_url.netloc.split("@")[-1]
-                #         if "@" in parsed_url.netloc
-                #         else parsed_url.netloc
-                #     )
-                #     if ":" in ip_port:
-                #         ip, port = ip_port.rsplit(":", 1)
-                #     else:
-                #         continue
+                elif "type=grpc" in url:
+                    host_path = "https://" + ip + path
+                    if host_path:
+                        parsed[url] = host_path
 
-                #     host_path = "https://" + ip
-
-                #     if ip_port:
-                #         parsed[url] = host_path
-
-                # elif "type=grpc" in url:
-                #     parsed_url = urlparse(url)
-
-                #     # Fix query string - replace HTML entities
-                #     query = parsed_url.query
-                #     query = query.replace("&amp;", "&")
-                #     query = query.replace("&lt;", "<")
-                #     query = query.replace("&gt;", ">")
-                #     query = query.replace("&quot;", '"')
-
-                #     # Parse query parameters into a dictionary
-                #     params = parse_qs(query, keep_blank_values=True)
-
-                #     # print(parsed_url)
-
-                #     ip_port = (
-                #         parsed_url.netloc.split("@")[-1]
-                #         if "@" in parsed_url.netloc
-                #         else parsed_url.netloc
-                #     )
-                #     if ":" in ip_port:
-                #         ip, port = ip_port.rsplit(":", 1)
-                #     else:
-                #         continue
-
-                #     # Extract host and path
-                #     if "path" in params and params["path"]:
-                #         raw_path = params.get("path", [None])[0]
-                #         path = unquote(raw_path) if raw_path is not None else None
-                #     else:
-                #         path = ""
-
-                #     host_path = "https://" + ip + path
-
-                #     if host_path:
-                #         parsed[url] = host_path
-
-                # elif "type=xhttp" in url:
-                #     parsed_url = urlparse(url)
-
-                #     # Fix query string - replace HTML entities
-                #     query = parsed_url.query
-                #     query = query.replace("&amp;", "&")
-                #     query = query.replace("&lt;", "<")
-                #     query = query.replace("&gt;", ">")
-                #     query = query.replace("&quot;", '"')
-
-                #     # Parse query parameters into a dictionary
-                #     params = parse_qs(query, keep_blank_values=True)
-
-                #     ip_port = (
-                #         parsed_url.netloc.split("@")[-1]
-                #         if "@" in parsed_url.netloc
-                #         else parsed_url.netloc
-                #     )
-                #     if ":" in ip_port:
-                #         ip, port = ip_port.rsplit(":", 1)
-                #     else:
-                #         continue
-
-                #     # Extract host and path
-                #     if "host" in params and params["host"]:
-                #         host = params.get("host", [None])[0]
-                #     else:
-                #         host = ip
-
-                #     if "path" in params and params["path"]:
-                #         raw_path = params.get("path", [None])[0]
-                #         path = unquote(raw_path) if raw_path is not None else None
-                #     else:
-                #         path = ""
-
-                #     host_path = "https://" + host + path
-
-                #     if host_path:
-                #         parsed[url] = host_path
+                elif "type=xhttp" in url:
+                    host_path = "https://" + ip + path
+                    if host_path:
+                        parsed[url] = host_path
 
         except Exception as e:
             print(e)
@@ -401,12 +307,10 @@ def is_resolvable_host(url: str) -> bool:
 async def ping_multiple_async(hosts_ports, max_concurrent=100):
     semaphore = asyncio.Semaphore(max_concurrent)
 
-    resolver = AsyncResolver(nameservers=["8.8.8.8", "1.1.1.1"])
     connector = aiohttp.TCPConnector(
         ssl=SSL_CONTEXT,  # Reuse SSL context
         limit=100,  # Total connections
         force_close=True,  # Close connections after each request
-        resolver=resolver,
     )
     timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
     async with aiohttp.ClientSession(

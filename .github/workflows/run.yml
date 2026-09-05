@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 * * * *"
 
   workflow_dispatch: # Manual trigger from GitHub UI
 
@@ -42,7 +42,7 @@ jobs:
           name: config-results
           path: |
             Configs/tcp_pass/
-            qrcode/            
+            qrcode/
           retention-days: 7
 
       - name: Commit results
